@@ -1,0 +1,76 @@
+#pragma once
+
+#include <iostream>
+#include <string>
+#include<fcntl.h>
+#include<unistd.h>
+#include<math.h>
+
+using namespace std;
+// 定义阶数
+#define ORDER 5
+// 定义b+树结构体
+struct BPlusTreeNode {
+    BPlusTreeNode* parent;  // 父节点
+    bool is_leaf;   // 是否为叶子节点
+    int key_num=0;    // 关键字的数量
+    int key[ORDER] = {-1};     // 关键字数组
+    string* name[ORDER] = {nullptr};
+    BPlusTreeNode* child[ORDER] = {nullptr};    // 存放孩子指针的数组
+    BPlusTreeNode* next; // 指向下一个兄弟节点
+    int id=-1;
+    int p_id=-1;
+    int b_id = -1;
+    int c_id[ORDER]={-1};
+};
+struct info {
+    BPlusTreeNode* node;
+    int loc;
+};
+class BplusTree
+{
+private:
+    // 查找叶子节点操作
+    info* find(BPlusTreeNode* node, int key);
+    // 获取该节点在其父亲节点的位置
+    int get_loc(BPlusTreeNode* p_node, BPlusTreeNode* c_node);
+    // 自下而上修改父节点的相关值
+    void p_change(BPlusTreeNode* p_node, int key, int c_key);
+    // 自上而下修改子节点的相关值
+    void c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node);
+    // 遍历一层的数值
+    void s_ceng(BPlusTreeNode* p_node);
+public:
+    // 根节点
+    BPlusTreeNode* root = new BPlusTreeNode();
+    // 节点数量
+    int node_num = 1;
+    // 默认构造函数
+    BplusTree() { root->is_leaf = true; root->parent = nullptr; root->key_num = 0; root->next = nullptr; root->id = 1; }
+    // 
+    BplusTree(char* path);
+public:
+    // 分割操作
+    void split(BPlusTreeNode* node);
+    // 插入操作
+    void insert(BPlusTreeNode* node, int key, string* name);
+    // 查询操作
+    void search(BPlusTreeNode* node, int key);
+    // 删除操作
+    void delect(BPlusTreeNode* node, int key);
+    // 查看树的结构
+    void all(BPlusTreeNode* node);
+    
+    
+    // 序列化操作
+    // 保存单个节点
+    void save(BPlusTreeNode* node);
+    // 保存一层节点
+    void save_ceng(BPlusTreeNode* node);
+    // 保存全部
+    void save_all(BPlusTreeNode* node);
+
+
+    // 反序列化操作
+    BPlusTreeNode* loadnode(char* path);
+};
