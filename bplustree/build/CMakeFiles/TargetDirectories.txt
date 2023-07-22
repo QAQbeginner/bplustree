@@ -1,3 +1,0 @@
-/home/wanghao/study_source/bplustree/build/CMakeFiles/rebuild_cache.dir
-/home/wanghao/study_source/bplustree/build/CMakeFiles/Demo.dir
-/home/wanghao/study_source/bplustree/build/CMakeFiles/edit_cache.dir
