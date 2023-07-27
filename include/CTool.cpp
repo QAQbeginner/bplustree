@@ -1,40 +1,5 @@
 #include "CTool.h"
 
-// 加载节点
-BPlusTreeNode* load_node(string path)
-{
-	int fp;
-	fp=open(path.c_str(),O_RDONLY|O_CREAT|O_SYNC);
-	// id
-	int id=stoi(read_one(fp));
-	cout<<id<<endl;
-	// is_leaf
-	bool is_leaf=stoi(read_one(fp));
-	cout<<is_leaf<<endl;
-	// pid
-	int pid=stoi(read_one(fp));
-	cout<<pid<<endl;
-	// bid
-	int bid=stoi(read_one(fp));
-	cout<<bid<<endl;
-	// key_num
-	int key_num=stoi(read_one(fp));
-	cout<<key_num<<endl;
-	// name
-	if(is_leaf)
-	{
-		string* name=read_name(fp,key_num);
-		cout<<name[1]<<endl;
-	}
-	// key
-	int* k_arr=read_many(fp,key_num);
-	cout<<k_arr[0]<<endl;
-	// child_id
-	// int* c_arr=read_many(fp,key_num+1);
-	// cout<<c_arr[0]<<endl;
-	return nullptr;
-}
-
 string read_one(int &fp)
 {
 	// 记录读取到的字符
@@ -58,6 +23,7 @@ string read_one(int &fp)
 		}
 		return ret_str;
 }
+
 int* read_many(int &fp,int n)
 {
 	int* arr=new int[n];
@@ -112,4 +78,16 @@ string* read_name(int &fp,int n)
 		}
 	}
 	return n_str;
+}
+
+void init(int &root_id,int &node_num)
+{
+	//string path="./root/node.txt";
+	string path="/home/wanghao/study_source/Bplustree/build/root/node.txt";
+	int fp;
+	fp=open(path.c_str(),O_RDONLY|O_CREAT|O_SYNC);
+	root_id=stoi(read_one(fp).c_str());
+	node_num=stoi(read_one(fp).c_str());
+	close(fp);
+	return;
 }

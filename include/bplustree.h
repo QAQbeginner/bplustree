@@ -1,12 +1,5 @@
 #pragma once
-
-#include <iostream>
-#include <string>
-#include<fcntl.h>
-#include<unistd.h>
-#include<math.h>
-
-using namespace std;
+#include"CTool.h"
 // 定义阶数
 #define ORDER 5
 // 定义b+树结构体
@@ -18,7 +11,7 @@ struct BPlusTreeNode {
     string* name[ORDER] = {nullptr};
     BPlusTreeNode* child[ORDER] = {nullptr};    // 存放孩子指针的数组
     BPlusTreeNode* next; // 指向下一个兄弟节点
-    int id=-1;
+    int id=-1;  
     int p_id=-1;
     int b_id = -1;
     int c_id[ORDER]={-1};
@@ -27,11 +20,18 @@ struct info {
     BPlusTreeNode* node;
     int loc;
 };
+// 定义结构体用于反序列化操作
+typedef struct NodeInfo
+{
+    BPlusTreeNode* node;
+    bool is_loaded=false;// 是否被加载
+    bool is_changed=false;// 是否被修改
+}NodeInfo,*PNodeInfo;
 class BplusTree
 {
 private:
     // 查找叶子节点操作
-    info* find(BPlusTreeNode* node, int key);
+    info* find(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
     // 获取该节点在其父亲节点的位置
     int get_loc(BPlusTreeNode* p_node, BPlusTreeNode* c_node);
     // 自下而上修改父节点的相关值
@@ -40,6 +40,8 @@ private:
     void c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node);
     // 遍历一层的数值
     void s_ceng(BPlusTreeNode* p_node);
+     // 找到key值在父节点的位置
+    int find_key(BPlusTreeNode* p_node, int key);
 public:
     // 根节点
     BPlusTreeNode* root = new BPlusTreeNode();
@@ -51,13 +53,13 @@ public:
     BplusTree(char* path);
 public:
     // 分割操作
-    void split(BPlusTreeNode* node);
+    void split(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
     // 插入操作
-    void insert(BPlusTreeNode* node, int key, string* name);
+    void insert(BPlusTreeNode* node, int key, string* name,vector<PNodeInfo> &node_arr);
     // 查询操作
-    void search(BPlusTreeNode* node, int key);
+    void search(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
     // 删除操作
-    void delect(BPlusTreeNode* node, int key);
+    void delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
     // 查看树的结构
     void all(BPlusTreeNode* node);
     
@@ -72,5 +74,5 @@ public:
 
 
     // 反序列化操作
-    BPlusTreeNode* loadnode(char* path);
+    static BPlusTreeNode* load_node(int t_id,vector<PNodeInfo> &node_arr);
 };
