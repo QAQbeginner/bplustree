@@ -14,5 +14,5 @@ int* read_many(int &fp,int n);
 
 string* read_name(int &fp,int n);
 
-void init(int &root_id,int &node_num);
+void init(int &root_id,int &node_num,bool &is_kong);
 

@@ -2,7 +2,7 @@
 //
 #include "bplustree.h"
 
-// 分割
+// 分割（已改）
 void BplusTree::split(BPlusTreeNode* node,vector<PNodeInfo> &node_arr)
 {
     // 创建新结点用于存储右半部分的数值
@@ -92,10 +92,16 @@ void BplusTree::insert(BPlusTreeNode* node, int key, string* name,vector<PNodeIn
     // 如果node为叶子节点则进行查找并插入
     if (node->is_leaf) {
         BPlusTreeNode* t_node = node;
+        if(t_node->b_id>-1&&node_arr[t_node->b_id]->is_loaded==false)
+            t_node->next=load_node(t_node->b_id,node_arr);
         while (t_node && t_node->next)
         {
             if (key > t_node->next->key[0])
+            {
+                if(t_node->b_id>-1&&node_arr[t_node->b_id]->is_loaded==false)
+                     t_node->next=load_node(t_node->b_id,node_arr);
                 t_node = t_node->next;
+            }
             else
                 break;
         }
@@ -131,10 +137,13 @@ void BplusTree::insert(BPlusTreeNode* node, int key, string* name,vector<PNodeIn
         }
         int c_id=node->c_id[i];
         if(node_arr[c_id]->is_loaded==true)
+        {
+            node->child[i]=node_arr[c_id]->node;
             insert(node->child[i], key,name,node_arr);
+        }
         else
             {
-                load_node(c_id,node_arr);
+                node->child[i]=load_node(c_id,node_arr);
                 insert(node->child[i], key,name,node_arr);
             }
     }
@@ -177,13 +186,13 @@ info* BplusTree::find(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
             }
     }
 }
-// 查询操作
+// 查询操作（已改）
 void BplusTree::search(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
 {
     info* f_info = find(node, key,node_arr);
     cout << "the search value is:" << *(f_info->node->name[f_info->loc]) << endl;
 }
-// 获取该节点在其父亲节点的位置
+// 获取该节点在其父亲节点的位置(还没改)
 int BplusTree::get_loc(BPlusTreeNode* p_node, BPlusTreeNode* c_node)
 {
     int i = 0;
@@ -194,7 +203,7 @@ int BplusTree::get_loc(BPlusTreeNode* p_node, BPlusTreeNode* c_node)
     }
     return i;
 }
-// 自下而上修改父节点的相关值
+// 自下而上修改父节点的相关值（已改）
 void BplusTree::p_change(BPlusTreeNode* p_node, int key, int c_key)
 {
     BPlusTreeNode* tp_node = p_node;
@@ -213,7 +222,7 @@ void BplusTree::p_change(BPlusTreeNode* p_node, int key, int c_key)
     }
 
 }
-// 自上而下修改子节点的相关值
+// 自上而下修改子节点的相关值(还没改)
 void BplusTree::c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node)
 {
     BPlusTreeNode* cd_node = c_node;
@@ -227,7 +236,7 @@ void BplusTree::c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node)
     }
 
 }
-// 删除操作(没写完)(写完)
+// 删除操作(没写完)(写完)(还没改)
 void BplusTree::delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
 {
     info* f_info = find(node, key,node_arr);
@@ -262,6 +271,14 @@ void BplusTree::delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
         BPlusTreeNode* pl_node = f_node->parent;
         //若其兄弟结点中含有多余的关键字，可以从兄弟结点中借关键字完成删除操作
         int c_loc = get_loc(f_node->parent, f_node);
+        // 加载左节点
+        int l_loc=pl_node->c_id[c_loc-1];
+        if(l_loc>-1&&node_arr[l_loc]->is_loaded==false)
+            pl_node->child[c_loc - 1]=load_node(l_loc,node_arr); 
+        // 加载右节点
+        int r_loc=pl_node->c_id[c_loc+1];
+        if(r_loc>0&&node_arr[r_loc]->is_loaded==false)
+            pl_node->child[c_loc + 1]=load_node(r_loc,node_arr); 
         // 若左兄弟节点有多余的值可以借用，则将左兄弟的最大值借用
         if (pl_node->child[c_loc - 1] && pl_node->child[c_loc - 1]->key_num >(ORDER-1)/2+1)
         {
@@ -364,8 +381,8 @@ void BplusTree::delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
         }
     }
 }
-// 遍历一层的数值
-void BplusTree::s_ceng(BPlusTreeNode* p_node)
+// 遍历一层的数值(还没改)（已改）
+void BplusTree::s_ceng(BPlusTreeNode* p_node,vector<PNodeInfo> &node_arr)
 {
     BPlusTreeNode* temp = p_node;
     while (temp)
@@ -374,21 +391,61 @@ void BplusTree::s_ceng(BPlusTreeNode* p_node)
         {
             cout << temp->key[i] << " ";
         }
-        temp = temp->next;
+        if(temp->b_id!=-1)
+        {
+            if(node_arr[temp->b_id]->is_loaded==true)
+            {
+                temp->next=node_arr[temp->b_id]->node;
+                temp = temp->next;
+            }
+            else
+            {
+                temp->next=load_node(temp->b_id,node_arr);
+                temp=temp->next;
+            }
+        }
+        else
+            temp=nullptr;
         cout << "   ";
     }
 }
-// 查看树的结构
-void BplusTree::all(BPlusTreeNode* node)
+// 查看树的结构(还没改)（已改）
+void BplusTree::all(BPlusTreeNode* node,vector<PNodeInfo> &node_arr)
 {
     BPlusTreeNode* temp = node;
     while (temp)
     {
-        s_ceng(temp);
+        s_ceng(temp,node_arr);
         cout << endl;
-        temp = temp->child[0];
+        if(temp->c_id[0]!=-1)
+        {
+            if(node_arr[temp->c_id[0]]->is_loaded==true)
+            {
+                temp->child[0]=node_arr[temp->c_id[0]]->node;
+                temp = temp->child[0];
+            }
+            else
+            {
+                temp->child[0]=load_node(temp->c_id[0],node_arr);
+                temp = temp->child[0];
+            }
+        }
+        else
+            temp=nullptr;
     }
 }
+// 修改
+void BplusTree::change(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
+{
+    info* f_info = find(node, key,node_arr);
+    string n_name;
+    cout<<"please input your value that you are ready to change"<<endl;
+    cin>>n_name;
+    string* t_str=new string(n_name);
+    f_info->node->name[f_info->loc]=t_str;
+    cout<<"change success"<<endl;
+}  
+
 
 // 单个节点序列化并保存操作[写完了，有待优化]
 void BplusTree::save(BPlusTreeNode* node)
@@ -455,9 +512,11 @@ void BplusTree::save(BPlusTreeNode* node)
     close(fp);
     cout << path << endl;
 }
-// 保存一层节点
+// 保存一层节点(还没改)
 void BplusTree::save_ceng(BPlusTreeNode* node)
 {
+
+
     BPlusTreeNode* temp = node;
     while (temp)
     {
@@ -470,7 +529,8 @@ void BplusTree::save_ceng(BPlusTreeNode* node)
 void BplusTree::save_all(BPlusTreeNode* node)
 {
     // 先把根节点的id和总共的数量保存至之root空间
-    string path = "./root/node";
+    //string path = "./root/node";
+    string path="/home/wanghao/study_source/Bplustree/build/root/node";
     path.append(".txt");
     cout<<path<<endl;
     int fp;
@@ -478,6 +538,7 @@ void BplusTree::save_all(BPlusTreeNode* node)
     write(fp,to_string(node->id).c_str(), to_string(node->id).size());
     write(fp,"\n", 1);
     write(fp,to_string(node_num).c_str(), to_string(node_num).size());
+    cout<<to_string(node_num)<<endl;
     close(fp);
     BPlusTreeNode* temp = node;
     while (temp)
@@ -520,17 +581,17 @@ BPlusTreeNode* BplusTree::load_node(int t_id,vector<PNodeInfo>& node_arr)
 	if(is_leaf)
 	{
 		name=read_name(fp,key_num);
-		cout<<name[0]<<endl;
+		//cout<<name[0]<<endl;
 	}
 	// key
 	int* k_arr=read_many(fp,key_num);
-	cout<<k_arr[0]<<endl;
+	//cout<<k_arr[0]<<endl;
 	// child_id
     int* c_arr;
-	if(!is_leaf)
+	if(!is_leaf) 
 	{
 		c_arr=read_many(fp,key_num+1);
-		cout<<c_arr[0]<<endl;
+		//cout<<c_arr[0]<<endl;
 	}
 	// build the node and give value to it
 	BPlusTreeNode* new_node=new BPlusTreeNode();
@@ -555,7 +616,7 @@ BPlusTreeNode* BplusTree::load_node(int t_id,vector<PNodeInfo>& node_arr)
         for(int i=0;i<=key_num;i++)
             new_node->c_id[i]=c_arr[i];
     }
-    cout<<node_arr[id]->is_changed<<endl;
+    // cout<<node_arr[id]->is_changed<<endl;
 	node_arr[id]->node=new_node;
     node_arr[id]->is_loaded=true;
     node_arr[id]->is_changed=false;

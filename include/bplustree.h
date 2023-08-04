@@ -17,8 +17,8 @@ struct BPlusTreeNode {
     int c_id[ORDER]={-1};
 };
 struct info {
-    BPlusTreeNode* node;
-    int loc;
+    BPlusTreeNode* node;    // 找到的叶子节点
+    int loc;                //	查找的值在该节点的位置
 };
 // 定义结构体用于反序列化操作
 typedef struct NodeInfo
@@ -39,7 +39,7 @@ private:
     // 自上而下修改子节点的相关值
     void c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node);
     // 遍历一层的数值
-    void s_ceng(BPlusTreeNode* p_node);
+    void s_ceng(BPlusTreeNode* p_node,vector<PNodeInfo> &node_arr);
      // 找到key值在父节点的位置
     int find_key(BPlusTreeNode* p_node, int key);
 public:
@@ -61,8 +61,9 @@ public:
     // 删除操作
     void delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
     // 查看树的结构
-    void all(BPlusTreeNode* node);
-    
+    void all(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
+    // 修改
+    void change(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);  
     
     // 序列化操作
     // 保存单个节点

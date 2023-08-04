@@ -80,12 +80,18 @@ string* read_name(int &fp,int n)
 	return n_str;
 }
 
-void init(int &root_id,int &node_num)
+void init(int &root_id,int &node_num,bool &is_kong)
 {
 	//string path="./root/node.txt";
+	is_kong=false;
 	string path="/home/wanghao/study_source/Bplustree/build/root/node.txt";
 	int fp;
-	fp=open(path.c_str(),O_RDONLY|O_CREAT|O_SYNC);
+	fp=open(path.c_str(),O_RDONLY|O_SYNC);
+	if(fp==-1)
+	{
+		is_kong=true;
+		return;
+	}
 	root_id=stoi(read_one(fp).c_str());
 	node_num=stoi(read_one(fp).c_str());
 	close(fp);
