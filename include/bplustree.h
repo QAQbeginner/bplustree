@@ -9,12 +9,12 @@ struct BPlusTreeNode {
     int key_num=0;    // 关键字的数量
     int key[ORDER] = {-1};     // 关键字数组
     string* name[ORDER] = {nullptr};
-    BPlusTreeNode* child[ORDER] = {nullptr};    // 存放孩子指针的数组
+    BPlusTreeNode* child[ORDER+1] = {nullptr};    // 存放孩子指针的数组
     BPlusTreeNode* next; // 指向下一个兄弟节点
     int id=-1;  
     int p_id=-1;
     int b_id = -1;
-    int c_id[ORDER]={-1};
+    int c_id[ORDER+1]={-1};
 };
 struct info {
     BPlusTreeNode* node;    // 找到的叶子节点
@@ -26,18 +26,20 @@ typedef struct NodeInfo
     BPlusTreeNode* node;
     bool is_loaded=false;// 是否被加载
     bool is_changed=false;// 是否被修改
+    bool is_removed=false;
 }NodeInfo,*PNodeInfo;
 class BplusTree
 {
-private:
+public:
     // 查找叶子节点操作
     info* find(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
+private:
     // 获取该节点在其父亲节点的位置
     int get_loc(BPlusTreeNode* p_node, BPlusTreeNode* c_node);
     // 自下而上修改父节点的相关值
-    void p_change(BPlusTreeNode* p_node, int key, int c_key);
+    void p_change(BPlusTreeNode* p_node, int key, int c_key,vector<PNodeInfo> &node_arr);
     // 自上而下修改子节点的相关值
-    void c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node);
+    void c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node,vector<PNodeInfo> &node_arr);
     // 遍历一层的数值
     void s_ceng(BPlusTreeNode* p_node,vector<PNodeInfo> &node_arr);
      // 找到key值在父节点的位置
@@ -72,6 +74,8 @@ public:
     void save_ceng(BPlusTreeNode* node);
     // 保存全部
     void save_all(BPlusTreeNode* node);
+
+    void save_changed(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
 
 
     // 反序列化操作

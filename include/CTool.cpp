@@ -97,3 +97,38 @@ void init(int &root_id,int &node_num,bool &is_kong)
 	close(fp);
 	return;
 }
+
+void rm_files()
+{
+    //在目录后面加上"\\*.*"进行第一次搜索
+	string dir="/home/wanghao/study_source/Bplustree/build/data";
+	struct dirent *direntp;
+	DIR *dirp = opendir(dir.c_str());
+	if (dirp != NULL) 
+	{
+		while ((direntp = readdir(dirp)) != NULL)
+		{
+			if(strcmp(direntp->d_name,"..")==0 || strcmp(direntp->d_name,".")==0)
+					continue;
+			string temp_path=dir+"/"+direntp->d_name;
+			printf("%s\n", temp_path.c_str());
+			int ret=remove(temp_path.c_str());
+			cout<<ret<<endl;
+		}
+	}
+	closedir(dirp);
+	int ret;
+	ret=remove("/home/wanghao/study_source/Bplustree/build/root/node.txt");
+	return ;
+}
+
+string getTime()
+{
+    time_t timep;
+    time (&timep);
+    char tmp[64];
+    strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S",localtime(&timep));
+    return tmp;
+}
+
+
