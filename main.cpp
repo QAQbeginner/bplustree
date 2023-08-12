@@ -1,6 +1,8 @@
 #include "bplustree.h"
 
 void xunhuan(BplusTree *m_tree,vector<PNodeInfo> &node_arr);
+void test_insert(BplusTree *m_tree,vector<PNodeInfo> &node_arr,int n);
+void random_insert(BplusTree *m_tree,vector<PNodeInfo> &node_arr,int n);
 int main()
 {
 	int root_node_id=1;
@@ -22,6 +24,7 @@ int main()
 		node_arr[1]->node->is_leaf=true;
 		node_arr[1]->node->id=node_num;
 		node_arr[1]->is_loaded=true;
+		node_arr[1]->is_changed=true;
 		m_tree->root=node_arr[1]->node;
 	}
 	else
@@ -36,7 +39,7 @@ void xunhuan(BplusTree *m_tree,vector<PNodeInfo> &node_arr)
 		//system("clear");
 		char choose = 0;
 		cout << "please input your choose" << endl;
-		cout << "1:insert 2:find 3:all 4:save 5:change 6:delect" << endl;
+		cout << "1:insert 2:find 3:all 4:save 5:change 6:delect 7:rm all files 8:insert n datas 9:insert random datas" << endl;
 		choose = getchar();
 		switch (choose)
 		{
@@ -44,9 +47,14 @@ void xunhuan(BplusTree *m_tree,vector<PNodeInfo> &node_arr)
 		{
 			system("clear");
 			int score;
-			string name;
 			cout << "please input your score" << endl;
 			cin >> score;
+			if(m_tree->find(m_tree->root,score,node_arr)!=nullptr)
+			{
+				cout<<"the score is aready asistent"<<endl;
+				continue;
+			}
+			string name;
 			cout << "please input your name" << endl;
 			cin >> name;
 			string* c_name = new string(name);
@@ -68,12 +76,13 @@ void xunhuan(BplusTree *m_tree,vector<PNodeInfo> &node_arr)
 		case '4':
 		{
 			system("clear");
-			m_tree->save_all(m_tree->root);
+			m_tree->save_changed(m_tree->root,node_arr);
 		}break;
 		case '5':
 		{
 			system("clear");
 			int key;
+			cout<<"please input your key"<<endl;
 			cin>>key;
 			m_tree->change(m_tree->root,key,node_arr);
 		}break;
@@ -84,7 +93,55 @@ void xunhuan(BplusTree *m_tree,vector<PNodeInfo> &node_arr)
 			cout<<"input your key"<<endl;
 			cin>>key;
 			m_tree->delect(m_tree->root,key,node_arr);
-		}
+		}break;
+		case '7':
+		{
+			rm_files();
+			return ;
+		}break;
+		case '8':
+		{
+			int n;
+			cout<<"please input the num of insert datas"<<endl;
+			cin>>n;
+			test_insert(m_tree,node_arr,n);
+		}break;
+		case '9':
+		{
+			int n;
+			cout<<"please input the num of insert datas"<<endl;
+			cin>>n;
+			random_insert(m_tree,node_arr,n);
+		}break;
 		}
 	}
+}
+void test_insert(BplusTree *m_tree,vector<PNodeInfo> &node_arr,int n)
+{
+	for(int i=1;i<=n;i++)
+	{
+		//int temp=rand()%n;
+		string name=to_string(i)+"test";
+		string *c_name=new string(name);
+		m_tree->insert(m_tree->root, i, c_name,node_arr);
+	}
+}
+void random_insert(BplusTree *m_tree,vector<PNodeInfo> &node_arr,int n)
+{
+	int num=0;
+	for(int i=1;i<=n;i++)
+	{
+		int temp=rand()%n+1;
+		if(m_tree->find(m_tree->root,temp,node_arr)!=nullptr)
+		{
+			cout<<"the score is aready asistent"<<endl;
+			continue;
+		}
+		string name=to_string(temp)+"test";
+		string *c_name=new string(name);
+		m_tree->insert(m_tree->root, temp, c_name,node_arr);
+		num++;
+
+	}
+	cout<<"the number of the datas is:"<<num<<endl;
 }
