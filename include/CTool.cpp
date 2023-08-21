@@ -111,9 +111,9 @@ void rm_files()
 			if(strcmp(direntp->d_name,"..")==0 || strcmp(direntp->d_name,".")==0)
 					continue;
 			string temp_path=dir+"/"+direntp->d_name;
-			printf("%s\n", temp_path.c_str());
+			//printf("%s\n", temp_path.c_str());
 			int ret=remove(temp_path.c_str());
-			cout<<ret<<endl;
+			// cout<<ret<<endl;
 		}
 	}
 	closedir(dirp);

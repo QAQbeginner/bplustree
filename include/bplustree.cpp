@@ -228,6 +228,7 @@ void BplusTree::search(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
         return ;
     }
     cout << "the search value is:" << *(f_info->node->name[f_info->loc]) << endl;
+    delete f_info;
 }
 // 获取该节点在其父亲节点的位置(还没改)
 int BplusTree::get_loc(BPlusTreeNode* p_node, BPlusTreeNode* c_node)
@@ -286,198 +287,18 @@ void BplusTree::c_change(BPlusTreeNode* c_node, BPlusTreeNode* p_node,vector<PNo
         i++;
     }
 }
-// 删除操作(没写完)(写完)(还没改)(ok)
-void BplusTree::delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
-{
-    info* f_info = find(node, key,node_arr);
-    if(f_info==nullptr)
-    {
-        cout<<"can't find this data,please check your input"<<endl;
-        return ;
-    }
-    node_arr[f_info->node->id]->is_changed=true;
-    BPlusTreeNode* f_node = f_info->node;
-    BPlusTreeNode* p_node = f_node->parent;
-    int loc = f_info->loc;
-    int key_l = f_node->key[0];
-    for (int i = loc; i < f_node->key_num; i++)
-    {
-        f_node->key[i] = f_node->key[i + 1];
-        f_node->name[i] = f_node->name[i + 1];
-    }
-    // 当结点中关键字个数大于⌈M/2⌉，做删除操作不会破坏 B+树，则可以直接删除。
-    if (f_node->key_num > (ORDER-1)/2+1)
-    {
-        // 当删除某结点中最大或者最小的关键字，就会涉及到更改其双亲结点一直到根结点中所有索引值的更改。
-        if (loc == 0)
-        {
-            int c_key = 0;
-            if (loc == 0)
-                c_key = f_node->key[0];
-            else
-                c_key = f_node->key[loc - 1];
-            p_change(p_node, key, c_key,node_arr);
-        }
-        f_node->key_num--;
-        return;
-    }
-    //当删除该关键字，导致当前结点中关键字个数小于 ⌈M/2⌉，若其兄弟结点中含有多余的关键字，可以从兄弟结点中借关键字完成删除操作
-    else if (f_node->key_num <= (ORDER-1)/2+1)
-    {
-        BPlusTreeNode* pl_node = f_node->parent;
-        //若其兄弟结点中含有多余的关键字，可以从兄弟结点中借关键字完成删除操作
-        int c_loc = get_loc(f_node->parent, f_node);
-        // 加载左节点
-        int l_loc=pl_node->c_id[c_loc-1];
-        if(l_loc>-1&&node_arr[l_loc]->is_loaded==false)
-            pl_node->child[c_loc - 1]=load_node(l_loc,node_arr); 
-        // 加载右节点
-        int r_loc=pl_node->c_id[c_loc+1];
-        if(r_loc>0&&node_arr[r_loc]->is_loaded==false)
-            pl_node->child[c_loc + 1]=load_node(r_loc,node_arr); 
-        // 若左兄弟节点有多余的值可以借用，则将左兄弟的最大值借用
-        if (pl_node->child[c_loc - 1] && pl_node->child[c_loc - 1]->key_num >(ORDER-1)/2+1)
-        {
-            node_arr[l_loc]->is_changed=true;
-            BPlusTreeNode* b_node = pl_node->child[c_loc - 1];
-            for (int i = f_node->key_num - 2; i >= 0; i--)
-            {
-                f_node->key[i + 1] = f_node->key[i];
-                f_node->name[i + 1] = f_node->name[i];
-            }
-            f_node->key[0] = b_node->key[b_node->key_num - 1];
-            f_node->name[0] = b_node->name[b_node->key_num - 1];
-            b_node->key_num--;
-            p_change(b_node->parent, key, f_node->key[0],node_arr);
-        }
-        // 若右兄弟节点有多余的值可以借用，则将右兄弟的最小值借用
-        else if (pl_node->child[c_loc + 1] && pl_node->child[c_loc + 1]->key_num > (ORDER-1)/2+1)
-        {
-            node_arr[c_loc+1]->is_changed=true;
-            BPlusTreeNode* g_node = pl_node->child[c_loc + 1];
-            int temp = g_node->key[0];
-            string* s_temp = new string(*g_node->name[0]);
-            for (int i = 0; i < g_node->key_num - 2; i++)
-            {
-                g_node->key[i] = g_node->key[i + 1];
-            }
-            f_node->key[f_node->key_num - 1] = temp;
-            f_node->name[f_node->key_num - 1] = s_temp;
-            g_node->key_num--;
-            p_change(g_node->parent, key, g_node->key[0],node_arr);
-        }
-        // 如果都没有可以借用的，就合并【还没写】
-        else
-        {
-            // 优先合并左边的
-            if (pl_node->child[c_loc - 1])
-            {
-                node_arr[pl_node->child[c_loc - 1]->id]->is_changed=true;
-                BPlusTreeNode* l_node = pl_node->child[c_loc - 1];
-                int num = l_node->key_num;
-                // 先将节点的值全部移植到左边
-                for (int i = 0; i < f_node->key_num - 1; i++)
-                {
-                    l_node->key[num +i] = f_node->key[i];
-                    if (l_node->is_leaf)
-                        l_node->name[num +i]= f_node->name[i];
-                    l_node->key_num++;
-                }
-                //[后续还要更新左节点的next]
-                l_node->next = f_node->next;
-                l_node->b_id = f_node->b_id;
-                // 且如果父节点key值只有一个，则删除父节点，root指向该节点
-                if (pl_node->key_num == 1)
-                {
-                    root = l_node;
-                    //rm_node_arr.push_back(pl_node->id);
-                    node_arr[pl_node->id]->is_removed=true;
-                    delete(pl_node);
-                }
-                // 如果不止一个，就只需要删除父节点中的相关值即可（1.key值2.孩子节点）
-                else
-                {
-                    int loc = get_loc(pl_node, f_node);
-                    BPlusTreeNode* loc_node = pl_node->child[loc];
-                    for (int i = loc; i < pl_node->key_num + 1; i++)
-                    {
-                        pl_node->child[i] = pl_node->child[i + 1];
-                        pl_node->c_id[i] = pl_node->c_id[i + 1];
-                    }
-                    int key_loc = find_key(pl_node, key_l);
-                    for (int i = key_loc; i < pl_node->key_num; i++)
-                    {
-                        pl_node->key[i] = pl_node->key[i + 1];
-                    }
-                    pl_node->key_num--;
-                }
-                // 最后删除掉该节点
-                node_arr[f_node->id]->is_removed=true;
-                //rm_node_arr.push_back(f_node->id);
-                delete(f_node);
-            }
-            // 若右兄弟节点有多余的值可以借用(说明只有两个节点，则直接合并为根节点，不用写那么多了)
-            else
-            {
-                node_arr[pl_node->child[c_loc + 1]->id]->is_changed=true;
-                BPlusTreeNode* r_node = pl_node->child[c_loc + 1];
-                int temp_keynum=f_node->key_num;
-                // 先将节点的值全部移植到左边
-                for (int i = 0; i < r_node->key_num; i++)
-                {
-                    f_node->key[temp_keynum -1+ i] = r_node->key[i];
-                    if (f_node->is_leaf)
-                        f_node->name[temp_keynum-1 + i] = r_node->name[i];
-                    f_node->key_num++;
-                }
-                f_node->key_num--;
-                //[后续还要更新左节点的next]
-                f_node->next = r_node->next;
-                f_node->b_id = r_node->b_id;
-                // 且如果父节点key值只有一个，则删除父节点，root指向该节点
-                if (pl_node->key_num == 1)
-                {
-                    root = f_node;
-                    node_arr[pl_node->id]->is_removed=true;
-                    //rm_node_arr.push_back(pl_node->id);
-                    delete(pl_node);
-                }
-                // 如果不止一个，就只需要删除父节点中的相关值即可（1.key值2.孩子节点）
-                else
-                {
-                    int loc = get_loc(pl_node, r_node);
-                    BPlusTreeNode* loc_node = pl_node->child[loc];
-                    for (int i = loc; i < pl_node->key_num + 1; i++)
-                    {
-                        pl_node->child[i] = pl_node->child[i + 1];
-                        pl_node->c_id[i] = pl_node->c_id[i + 1];
-                    }
-                    int key_loc = find_key(pl_node, r_node->key[0]);
-                    for (int i = key_loc; i < pl_node->key_num; i++)
-                    {
-                        pl_node->key[i] = pl_node->key[i + 1];
-                    }
-                    pl_node->key_num--;
-                }
-                // 最后删除掉该节点
-                node_arr[r_node->id]->is_removed=true;
-                // rm_node_arr.push_back(r_node->id);
-                delete(r_node);
-            }
-
-        }
-    }
-}
 // 遍历一层的数值(还没改)（已改）
 void BplusTree::s_ceng(BPlusTreeNode* p_node,vector<PNodeInfo> &node_arr)
 {
     BPlusTreeNode* temp = p_node;
     while (temp)
     {
+        cout<<"(";
         for (int i = 0; i < temp->key_num; i++)
         {
             cout << temp->key[i] << " ";
         }
+        cout<<")";
         if(temp->b_id!=-1)
         {
             if(node_arr[temp->b_id]->is_loaded==true)
@@ -493,7 +314,7 @@ void BplusTree::s_ceng(BPlusTreeNode* p_node,vector<PNodeInfo> &node_arr)
         }
         else
             temp=nullptr;
-        cout << "   ";
+        cout << "     ";
     }
 }
 // 查看树的结构(还没改)（已改）
@@ -532,6 +353,7 @@ void BplusTree::change(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr)
     f_info->node->name[f_info->loc]=t_str;
     node_arr[f_info->node->id]->is_changed=true;
     cout<<"change success"<<endl;
+    delete f_info;
 }  
 
 
@@ -603,7 +425,7 @@ void BplusTree::save(BPlusTreeNode* node)
     write(fp,cld_str.c_str(), cld_str.size());
     write(fp,"\n", 1);
     close(fp);
-    cout << path << endl;
+    // cout << path << endl;
 }
 // 保存一层节点(还没改)
 void BplusTree::save_ceng(BPlusTreeNode* node)
@@ -729,7 +551,7 @@ void BplusTree::save_changed(BPlusTreeNode* node,vector<PNodeInfo> &node_arr)
     //string path = "./root/node";
     string path="/home/wanghao/study_source/Bplustree/build/root/node";
     path.append(".txt");
-    cout<<path<<endl;
+    // cout<<path<<endl;
     int fp;
     fp=open(path.c_str(), O_RDWR|O_CREAT,0777);
     write(fp,to_string(node->id).c_str(), to_string(node->id).size());

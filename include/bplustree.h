@@ -4,7 +4,7 @@
 #define ORDER 5
 // 定义b+树结构体
 struct BPlusTreeNode {
-    BPlusTreeNode* parent;  // 父节点
+    BPlusTreeNode* parent=nullptr;  // 父节点
     bool is_leaf;   // 是否为叶子节点
     int key_num=0;    // 关键字的数量
     int key[ORDER] = {-1};     // 关键字数组
@@ -17,13 +17,13 @@ struct BPlusTreeNode {
     int c_id[ORDER+1]={-1};
 };
 struct info {
-    BPlusTreeNode* node;    // 找到的叶子节点
+    BPlusTreeNode* node=nullptr;    // 找到的叶子节点
     int loc;                //	查找的值在该节点的位置
 };
 // 定义结构体用于反序列化操作
 typedef struct NodeInfo
 {
-    BPlusTreeNode* node;
+    BPlusTreeNode* node=nullptr;
     bool is_loaded=false;// 是否被加载
     bool is_changed=false;// 是否被修改
     bool is_removed=false;
@@ -51,8 +51,7 @@ public:
     int node_num = 1;
     // 默认构造函数
     BplusTree() { root->is_leaf = true; root->parent = nullptr; root->key_num = 0; root->next = nullptr; root->id = 1; }
-    // 
-    BplusTree(char* path);
+    // xigouganhsu
 public:
     // 分割操作
     void split(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
@@ -61,7 +60,7 @@ public:
     // 查询操作
     void search(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
     // 删除操作
-    void delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
+    //void delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
     // 查看树的结构
     void all(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
     // 修改
@@ -80,4 +79,20 @@ public:
 
     // 反序列化操作
     static BPlusTreeNode* load_node(int t_id,vector<PNodeInfo> &node_arr);
+
+
+    int get_node_loc(BPlusTreeNode* node,BPlusTreeNode* p_node);
+    // 非叶子节点的合并,r_node合并到l_node
+    void combine(BPlusTreeNode* l_node,BPlusTreeNode* r_node,vector<PNodeInfo> &node_arr);
+    // 非叶子节点
+    // 左边向右边借
+    void borrow_l(BPlusTreeNode* l_node,BPlusTreeNode* r_node,vector<PNodeInfo> &node_arr);
+    // 右边向左边借
+    void borrow_r(BPlusTreeNode* r_node,BPlusTreeNode* l_node,vector<PNodeInfo> &node_arr);
+    // 非叶子节点
+    void deal_node(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
+    // 叶子节点
+    void deal_y_node(BPlusTreeNode* node,vector<PNodeInfo> &node_arr,int key,int key_l);
+    void combine_y_node(BPlusTreeNode* l_node,BPlusTreeNode* r_node,vector<PNodeInfo> &node_arr,int key_l);
+    void delect(BPlusTreeNode* node,int key,vector<PNodeInfo> &node_arr);
 };
