@@ -1,7 +1,7 @@
 #pragma once
 #include"CTool.h"
 // 定义阶数
-#define ORDER 5
+#define ORDER 71
 // 定义b+树结构体
 struct BPlusTreeNode {
     BPlusTreeNode* parent=nullptr;  // 父节点
@@ -59,8 +59,6 @@ public:
     void insert(BPlusTreeNode* node, int key, string* name,vector<PNodeInfo> &node_arr);
     // 查询操作
     void search(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
-    // 删除操作
-    //void delect(BPlusTreeNode* node, int key,vector<PNodeInfo> &node_arr);
     // 查看树的结构
     void all(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
     // 修改
@@ -69,17 +67,15 @@ public:
     // 序列化操作
     // 保存单个节点
     void save(BPlusTreeNode* node);
-    // 保存一层节点
-    void save_ceng(BPlusTreeNode* node);
-    // 保存全部
-    void save_all(BPlusTreeNode* node);
 
     void save_changed(BPlusTreeNode* node,vector<PNodeInfo> &node_arr);
+
+    void save_new(BPlusTreeNode* node);
 
 
     // 反序列化操作
     static BPlusTreeNode* load_node(int t_id,vector<PNodeInfo> &node_arr);
-
+    static BPlusTreeNode* n_load_node(int t_id,vector<PNodeInfo> &node_arr);
 
     int get_node_loc(BPlusTreeNode* node,BPlusTreeNode* p_node);
     // 非叶子节点的合并,r_node合并到l_node

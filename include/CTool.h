@@ -26,6 +26,8 @@ void rm_files();
 
 string getTime();
 
+void set_line(int &fp,int n);
+
 
 
 
