@@ -8,6 +8,6 @@ project (Demo)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # 指定生成目标
-add_executable(Demo main.cpp include/bplustree.cpp include/CTool.cpp include/del.cpp include/test.cpp)
+add_executable(Demo main.cpp rsc/bplustree.cpp rsc/CTool.cpp rsc/del.cpp rsc/test.cpp rsc/save.cpp rsc/insert.cpp)
 
 SET(CMAKE_BUILD_TYPE "Debug")
